@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.dao.AppointmentDao">
+    <resultMap id="appointmentMap" type="Appointment">
+        <id property="id" column="id"/>
+        <result property="patientId" column="patient_id"/>
+        <result property="doctorId" column="doctor_id"/>
+        <result property="appointmentDatetime" column="appointment_datetime"
+                jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"/>
+        <result property="status" column="status"/>
+        <result property="notes" column="notes"/>
+        <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+
+        <!-- 关联映射 -->
+        <association property="patient" column="patient_id"
+                     select="com.hospital.dao.PatientDao.getPatientById"/>
+        <association property="doctor" column="doctor_id"
+                     select="com.hospital.dao.DoctorDao.getDoctorById"/>
+    </resultMap>
+
+    <!-- 添加预约 -->
+    <insert id="addAppointment" parameterType="Appointment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO appointments (
+            patient_id,
+            doctor_id,
+            appointment_datetime,
+            notes,
+            status
+        )
+        VALUES (
+                   #{patientId},
+                   #{doctorId},
+                   #{appointmentDatetime},
+                   #{notes},
+                   #{status, jdbcType=VARCHAR}
+               )
+    </insert>
+
+    <!-- 获取所有预约 -->
+    <select id="getAllAppointments" resultMap="appointmentMap">
+        SELECT * FROM appointments
+    </select>
+
+    <!-- 按ID获取预约 -->
+    <select id="getAppointmentById" resultMap="appointmentMap">
+        SELECT * FROM appointments WHERE id = #{id}
+    </select>
+
+    <!-- 更新预约 -->
+    <update id="updateAppointment" parameterType="Appointment">
+        UPDATE appointments
+        SET patient_id = #{patientId},
+            doctor_id = #{doctorId},
+            appointment_datetime = #{appointmentDatetime},
+            notes = #{notes},
+            status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除预约 -->
+    <delete id="deleteAppointment" parameterType="int">
+        DELETE FROM appointments WHERE id = #{id}
+    </delete>
+
+    <!-- 获取医生的可用日期 -->
+    <select id="getAvailableDates" resultType="java.time.LocalDate">
+        SELECT DISTINCT DATE(appointment_datetime) AS appointment_date
+        FROM appointments
+        WHERE doctor_id = #{doctorId}
+          AND appointment_datetime > NOW()
+        ORDER BY appointment_date
+    </select>
+
+    <!-- 获取特定日期的可用时间 -->
+    <select id="getAvailableTimes" resultType="java.time.LocalTime">
+        SELECT TIME(appointment_datetime) AS appointment_time
+        FROM appointments
+        WHERE doctor_id = #{doctorId}
+          AND DATE(appointment_datetime) = #{date, jdbcType=DATE}
+          AND appointment_datetime > NOW()
+        ORDER BY appointment_time
+    </select>
+
+    <!-- 按用户ID获取预约 -->
+    <select id="getAppointmentsByUserId" resultMap="appointmentMap">
+        SELECT a.*
+        FROM appointments a
+                 JOIN patients p ON a.patient_id = p.id
+        WHERE p.user_id = #{userId}
+    </select>
+
+    <!-- 取消预约 -->
+    <update id="cancelAppointment">
+        UPDATE appointments
+        SET status = '已取消'
+        WHERE id = #{appointmentId}
+    </update>
+
+    <!-- 按日期获取预约 -->
+    <select id="getAppointmentsByDate" resultMap="appointmentMap">
+        SELECT * FROM appointments
+        WHERE DATE(appointment_datetime) = #{date, jdbcType=DATE}
+    </select>
+
+    <!-- 按医生和日期获取预约 -->
+    <select id="getAppointmentsByDoctorAndDate" resultMap="appointmentMap">
+        SELECT * FROM appointments
+        WHERE doctor_id = #{doctorId}
+          AND DATE(appointment_datetime) = #{date, jdbcType=DATE}
+    </select>
+</mapper>

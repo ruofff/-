@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 添加 JDBC 类型处理 -->
+        <setting name="jdbcTypeForNull" value="NULL"/>
+        <!-- 添加延迟加载设置 -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
+    </settings>
+
+    <typeAliases>
+        <package name="com.hospital.model"/>
+    </typeAliases>
+
+    <!-- 关键修复：将 typeHandlers 移到正确位置 -->
+    <typeHandlers>
+        <!-- 注册枚举类型处理器 -->
+        <typeHandler handler="com.hospital.typehandler.GenderTypeHandler"
+                     javaType="com.hospital.model.Patient$Gender"/>
+    </typeHandlers>
+
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+<!--                <property name="url" value="jdbc:mysql://localhost:3306/hospital_db?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC&amp;rewriteBatchedStatements=true"/>-->
+                <property name="url" value="jdbc:mysql://localhost:3306/hospital_db?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;serverTimezone=UTC&amp;rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=true"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <!-- 添加部门映射 -->
+        <mapper resource="mapper/DepartmentMapper.xml"/>
+        <!-- 其他映射 -->
+        <mapper resource="mapper/DoctorMapper.xml"/>
+        <mapper resource="mapper/PatientMapper.xml"/>
+        <mapper resource="mapper/AppointmentMapper.xml"/>
+        <mapper resource="mapper/UserMapper.xml"/>
+    </mappers>
+</configuration>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.dao.PatientDao">
+    <resultMap id="patientMap" type="Patient">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender" typeHandler="com.hospital.typehandler.GenderTypeHandler"/>
+        <result property="age" column="age"/>
+        <result property="phone" column="phone"/>
+        <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+        <result property="userId" column="user_id"/>
+        <result property="emergencyContact" column="emergency_contact"/>
+        <result property="emergencyPhone" column="emergency_phone"/>
+    </resultMap>
+
+    <!-- 获取所有患者 -->
+    <select id="getAllPatients" resultMap="patientMap">
+        SELECT * FROM patients
+    </select>
+
+    <!-- 根据ID获取患者 -->
+    <select id="getPatientById" resultMap="patientMap">
+        SELECT * FROM patients WHERE id = #{id}
+    </select>
+
+    <!-- 添加患者 -->
+    <insert id="addPatient" parameterType="com.hospital.model.Patient"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO patients (
+        name,
+        gender,
+        age,
+        phone,
+        created_at,
+        user_id,
+        emergency_contact,
+        emergency_phone
+        ) VALUES (
+        #{name},
+        <!-- 关键修复：指定类型处理器 -->
+        #{gender, typeHandler=com.hospital.typehandler.GenderTypeHandler},
+        #{age},
+        #{phone},
+        CURRENT_TIMESTAMP,
+        #{userId},
+        #{emergencyContact},
+        #{emergencyPhone}
+        )
+    </insert>
+
+    <!-- 更新患者 -->
+    <update id="updatePatient" parameterType="Patient">
+        UPDATE patients
+        SET
+            name = #{name},
+            gender = #{gender, typeHandler=com.hospital.typehandler.GenderTypeHandler},
+            age = #{age},
+            phone = #{phone},
+            user_id = #{userId},
+            emergency_contact = #{emergencyContact},
+            emergency_phone = #{emergencyPhone}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除患者 -->
+    <delete id="deletePatient" parameterType="int">
+        DELETE FROM patients WHERE id = #{id}
+    </delete>
+
+    <!-- 根据用户ID获取患者 -->
+    <select id="getPatientByUserId" resultMap="patientMap">
+        SELECT * FROM patients WHERE user_id = #{userId}
+    </select>
+</mapper>

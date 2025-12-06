@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.dao.DoctorDao">
+    <resultMap id="doctorMap" type="Doctor">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="title" column="title"/>
+        <result property="bio" column="bio"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="departmentName" column="department_name"/>
+
+        <!-- 部门关联映射 -->
+        <association property="department" column="department_id"
+                     select="com.hospital.dao.DepartmentDao.getDepartmentById"
+                     fetchType="lazy"/>
+    </resultMap>
+
+    <!-- 获取所有医生（包含部门信息） -->
+    <select id="getAllDoctors" resultMap="doctorMap">
+        SELECT
+            d.id,
+            d.name,
+            d.title,
+            d.bio,
+            d.department_id,
+            dept.name AS department_name
+        FROM doctors d
+                 LEFT JOIN departments dept ON d.department_id = dept.id
+    </select>
+
+    <select id="getDoctorById" resultMap="doctorMap">
+        SELECT
+            d.id,
+            d.name,
+            d.title,
+            d.bio,
+            d.department_id,
+            dept.name AS department_name
+        FROM doctors d
+                 LEFT JOIN departments dept ON d.department_id = dept.id
+        WHERE d.id = #{id}
+    </select>
+
+    <select id="getDoctorsByDepartment" resultMap="doctorMap">
+        SELECT
+            d.id,
+            d.name,
+            d.title,
+            d.bio,
+            d.department_id,
+            dept.name AS department_name
+        FROM doctors d
+                 LEFT JOIN departments dept ON d.department_id = dept.id
+        WHERE d.department_id = #{departmentId}
+    </select>
+
+    <insert id="addDoctor" parameterType="Doctor" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO doctors (name, title, department_id, bio)
+        VALUES (#{name}, #{title}, #{departmentId}, #{bio})
+    </insert>
+
+    <update id="updateDoctor" parameterType="Doctor">
+        UPDATE doctors
+        SET
+            name = #{name},
+            title = #{title},
+            department_id = #{departmentId},
+            bio = #{bio}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteDoctor" parameterType="int">
+        DELETE FROM doctors WHERE id = #{id}
+    </delete>
+
+    <!-- 添加按姓名搜索医生的方法 -->
+    <select id="searchDoctorsByName" resultMap="doctorMap">
+        SELECT
+            d.id,
+            d.name,
+            d.title,
+            d.bio,
+            d.department_id,
+            dept.name AS department_name
+        FROM doctors d
+                 LEFT JOIN departments dept ON d.department_id = dept.id
+        WHERE d.name LIKE CONCAT('%', #{name}, '%')
+    </select>
+
+    <!-- 添加获取医生数量的方法 -->
+    <select id="getDoctorCount" resultType="int">
+        SELECT COUNT(*) FROM doctors
+    </select>
+</mapper>

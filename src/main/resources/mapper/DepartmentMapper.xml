@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.dao.DepartmentDao">
+    <!-- 基础部门映射 -->
+    <resultMap id="departmentMap" type="Department">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+    </resultMap>
+
+    <!-- 带医生的部门映射 -->
+    <resultMap id="departmentWithDoctorsMap" type="Department">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+
+        <!-- 修改为使用当前命名空间的方法 -->
+        <collection property="doctors" ofType="Doctor"
+                    select="getDoctorsByDepartment"
+                    column="id"/>
+    </resultMap>
+
+    <!-- 医生结果映射 -->
+    <resultMap id="doctorResultMap" type="Doctor">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="title" column="title"/>
+        <result property="bio" column="bio"/>
+        <result property="departmentId" column="department_id"/>
+    </resultMap>
+
+    <!-- 获取所有科室（不包含医生） -->
+    <select id="getAllDepartments" resultMap="departmentMap">
+        SELECT id, name, description FROM departments
+    </select>
+
+    <!-- 获取单个科室（不包含医生） -->
+    <select id="getDepartmentById" resultMap="departmentMap">
+        SELECT id, name, description FROM departments WHERE id = #{id}
+    </select>
+
+    <!-- 获取所有科室（包含医生列表） -->
+    <select id="getAllDepartmentsWithDoctors" resultMap="departmentWithDoctorsMap">
+        SELECT id, name, description FROM departments
+    </select>
+
+    <!-- 获取单个科室（包含医生列表） -->
+    <select id="getDepartmentByIdWithDoctors" resultMap="departmentWithDoctorsMap">
+        SELECT id, name, description FROM departments WHERE id = #{id}
+    </select>
+
+    <!-- 添加科室 -->
+    <insert id="addDepartment" parameterType="Department" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO departments (name, description)
+        VALUES (#{name}, #{description})
+    </insert>
+
+    <!-- 更新科室 -->
+    <update id="updateDepartment" parameterType="Department">
+        UPDATE departments
+        SET
+            name = #{name},
+            description = #{description}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除科室 -->
+    <delete id="deleteDepartment" parameterType="int">
+        DELETE FROM departments WHERE id = #{id}
+    </delete>
+
+    <!-- 根据部门ID获取医生列表 -->
+    <select id="getDoctorsByDepartment" resultMap="doctorResultMap">
+        SELECT
+            id,
+            name,
+            title,
+            bio,
+            department_id
+        FROM doctors
+        WHERE department_id = #{departmentId}
+    </select>
+</mapper>
